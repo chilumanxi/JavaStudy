@@ -3,7 +3,9 @@
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/JVM/内存模型/堆溢出处理·" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/JVM/内存模型/最大堆和初始堆" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/JVM/内存模型/栈上分配" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
