@@ -242,6 +242,7 @@ Runtime.gc()是一个native方法，最终在jvm.cpp实现，如下：
     class space    used 374K, capacity 388K, committed 512K, reserved 1048576K
 
 可以看到，所有的对象均分配在新生代，老年代使用为0，下面我们设置PretenureSizeThreshold参数。
+
 2. `-Xmx32m -Xms32m -XX:+UseSerialGC -XX:+PrintGCDetails -XX:PretenureSizeThreshold=1000`
    得到结果如下：
    
@@ -258,6 +259,7 @@ Runtime.gc()是一个native方法，最终在jvm.cpp实现，如下：
 
 我们奇怪的发现，设置以后，按理说应该都分配在老年代，但实际上仍然都分布在了年轻代，不过老年代也有所不同，使用了16k的空间。
 出现这种情况的原因是虚拟机在为线程分配空间时，会优先使用一块叫做TLAB的区域，对于体积不大的对象，很有可能会在TLAB上分配，这里把TLAB禁用后继续尝试。
+
 3. `-Xmx32m -Xms32m -XX:+UseSerialGC -XX:+PrintGCDetails -XX:-UseTLAB -XX:PretenureSizeThreshold=1000`
    得到结果如下：
    
@@ -278,4 +280,25 @@ Runtime.gc()是一个native方法，最终在jvm.cpp实现，如下：
 TLAB全程为Thread Local Allocation Buffer，即线程本地分配缓存。从名字上可以看到，TLAB是一个线程专用的内存分配区域。
 
 TLAB存在的意义主要是加速对象分配。因为同一时间，可能会有多个线程在堆上申请空间。因此，每一次对象分配都必须进行同步，而在竞争激烈的环境下分配效率会进一步降低。
-因此Java虚拟机就使用了TLAB这种线程专属的区域来避免多线程冲突。
+因此Java虚拟机就使用了TLAB这种线程专属的区域来避免多线程冲突,提高对象分配的效率。TLAB本身占用了eden区的空间，在TLAB启用的情况下，虚拟机会为每一个线程分配一块TLAB区域
+
+参考代码TLABTest.java，TLAB开启与未开启情况下，差了一倍的时间。
+
+由于TLAB空间比较小，所以很容易装满。如一个100KB的TLAB空间，之前已经装了80KB，此时再来一个30KB的对象，就面临选择，是抛弃原有TLAB空间，浪费掉20KB的空间，重新申请新的TLAB空间，
+还是将30KB的对象直接分配到堆上，保留原有的TLAB空间，留剩下的20KB到以后用。这取决于一个最大浪费空间(refill_waste)的值。当分配TLAB空间失败时，会判断当前分配的对象是否小于最大浪费空间。
+如果当前分配的对象比最大浪费空间小，当前TLAB空间会退回Eden区，重新申请新的TLAB空间将此对象分配；如果当前分配的对象比最大浪费空间大，则虚拟机会将其直接分配在堆上。
+默认情况下，TLAB的大小和refill_waste的值会在运行时不断调整。可以使用参数-XX:-ResizeTLAB禁用自动调整并使用参数-XX:TLABSize指定TLAB空间大小。
+
+TLAB是线程私有的，线程初始化的时候，会创建并初始化TLAB。同时，在GC 扫描对象发生之后，线程第一次尝试分配对象的时候，也会创建并初始化TLAB。
+TLAB生命周期停止（停止不代表被回收，而是不再被这个线程私有管理）在：
+1. 当前TLAB空间不够分配且分配对象的大小小于最大浪费空间，那么这个TLAB将会退回Eden区重新申请。
+2. 发生GC时，TLAB被回收。
+
+TLAB浪费的空间由三部分组成，即gc,fast,slow。gc表示发生新生代GC时TLAB空闲的空间，fast和slow都表示TLAB区域被废弃时尚未被使用的空间。
+
+对象分配流程，如果当前流程分配不成功的话就顺序往下进行尝试：
+
+1. 栈上分配
+2. TLAB分配
+3. 老年代分配
+4. Eden区分配
