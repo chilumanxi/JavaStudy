@@ -222,12 +222,13 @@ Runtime.gc()是一个native方法，最终在jvm.cpp实现，如下：
 那么该age就是晋升年龄。然后从age和设定的MaxTenuringThreshold取较小的一个作为晋升年龄。
 确定对象何时晋升的另外一个重要的参数为TargetSurvivorRatio，用于设置survivor区的使用率，即如果survivor区在GC后使用率超过50，那么可能会使一个较小的age作为晋升年龄
 
-###大对象进入老年代###
+### 大对象进入老年代 ###
 除了年龄，对象的体积也会影响对象的晋升。假如无论Eden区还是Survivor区都无法容纳该对象的体积，那该对象就会直接进入老年代。
 
 可以通过参数PretenureSizeThreshold来设置对象直接晋升到老年代的阈值，单位是字节。这个参数只对串行回收器和ParNew有效，对ParallelGC无效，默认情况该值为0，即不设阈值。
 参考PretenureSizeThreshold.java代码，使用不同参数如下：
-1.  `-Xmx32m -Xms32m -XX:+UseSerialGC -XX:+PrintGCDetails` 得到结果如下：
+1.  `-Xmx32m -Xms32m -XX:+UseSerialGC -XX:+PrintGCDetails` 
+    得到结果如下：
 
 
     Heap
@@ -239,9 +240,11 @@ Runtime.gc()是一个native方法，最终在jvm.cpp实现，如下：
     the space 21888K,   0% used [0x00000000feaa0000, 0x00000000feaa0000, 0x00000000feaa0200, 0x0000000100000000)
     Metaspace       used 3446K, capacity 4496K, committed 4864K, reserved 1056768K
     class space    used 374K, capacity 388K, committed 512K, reserved 1048576K
-可以看到，所有的对象均分配在新生代，老年代使用为0，下面我们设置PretenureSizeThreshold参数。
-2. `-Xmx32m -Xms32m -XX:+UseSerialGC -XX:+PrintGCDetails -XX:PretenureSizeThreshold=1000`得到结果如下：
 
+可以看到，所有的对象均分配在新生代，老年代使用为0，下面我们设置PretenureSizeThreshold参数。
+2. `-Xmx32m -Xms32m -XX:+UseSerialGC -XX:+PrintGCDetails -XX:PretenureSizeThreshold=1000`
+   得到结果如下：
+   
 
     Heap
     def new generation   total 9792K, used 7878K [0x00000000fe000000, 0x00000000feaa0000, 0x00000000feaa0000)
@@ -252,10 +255,12 @@ Runtime.gc()是一个native方法，最终在jvm.cpp实现，如下：
     the space 21888K,   0% used [0x00000000feaa0000, 0x00000000feaa4010, 0x00000000feaa4200, 0x0000000100000000)
     Metaspace       used 3426K, capacity 4496K, committed 4864K, reserved 1056768K
     class space    used 371K, capacity 388K, committed 512K, reserved 1048576K
+
 我们奇怪的发现，设置以后，按理说应该都分配在老年代，但实际上仍然都分布在了年轻代，不过老年代也有所不同，使用了16k的空间。
 出现这种情况的原因是虚拟机在为线程分配空间时，会优先使用一块叫做TLAB的区域，对于体积不大的对象，很有可能会在TLAB上分配，这里把TLAB禁用后继续尝试。
-3. `-Xmx32m -Xms32m -XX:+UseSerialGC -XX:+PrintGCDetails -XX:-UseTLAB -XX:PretenureSizeThreshold=1000`得到结果如下：
-
+3. `-Xmx32m -Xms32m -XX:+UseSerialGC -XX:+PrintGCDetails -XX:-UseTLAB -XX:PretenureSizeThreshold=1000`
+   得到结果如下：
+   
 
     Heap
     def new generation   total 9792K, used 1254K [0x00000000fe000000, 0x00000000feaa0000, 0x00000000feaa0000)
@@ -266,6 +271,7 @@ Runtime.gc()是一个native方法，最终在jvm.cpp实现，如下：
     the space 21888K,  28% used [0x00000000feaa0000, 0x00000000ff0ba228, 0x00000000ff0ba400, 0x0000000100000000)
     Metaspace       used 3441K, capacity 4496K, committed 4864K, reserved 1056768K
     class space    used 373K, capacity 388K, committed 512K, reserved 1048576K
+
 可以看到，大量byte数组都已经分配在老年代了
 
 ### TLAB ###
