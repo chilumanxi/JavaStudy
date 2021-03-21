@@ -118,3 +118,94 @@ jinfo还可以动态修改部分参数的值，如上，动态打开了对GC的�
 ## jmap ##
 
 jmap命令是一个多功能的命令，可以生成Java程序的堆Dump文件，也可以查看堆内存实例的统计信息。
+
+示例一：
+
+`D:\MyWork\JavaStudy>jmap -histo 19812 > D:\a.txt`
+
+使用jmap命令生成PID为19812的Java程序的对象统计信息，并输出到D:\a.txt，输出文件如下：
+
+	 num     #instances         #bytes  class name
+	----------------------------------------------
+   	1:        488662      111741344  [B
+   	2:        553969       66614744  [C
+   	3:         55308       41531944  [I
+   	4:         56388        6581752  [Ljava.lang.Object;
+   	5:        267052        6409248  java.lang.String
+   	6:         48488        4266944  java.lang.reflect.Method
+   	7:        166821        3509328  [Ljava.lang.Class;
+   	8:        102631        3284192  java.util.HashMap$Node
+   	9:         78326        2506432  java.util.concurrent.ConcurrentHashMap$Node
+	.....
+	7395:             1             16  sun.util.locale.provider.TimeZoneNameUtility$TimeZoneNameGetter
+	7396:             1             16  sun.util.resources.LocaleData
+	7397:             1             16  sun.util.resources.LocaleData$LocaleDataResourceBundleControl
+	Total       2864195      286099720
+
+可以看到，输出显示了内存中实例数量和合计。
+
+示例二：
+
+	D:\MyWork\JavaStudy>jmap -dump:format=b,file=D:\heap.hprof 19812
+	Dumping heap to D:\heap.hprof ...
+	Heap dump file created
+
+将应用程序的堆快照输出到D:\heap.hprof中，可以通过多种工具分析
+
+示例三：
+
+	D:\MyWork\JavaStudy>jmap -clstats 19812
+	Attaching to process ID 19812, please wait...
+	Debugger attached successfully.
+	Server compiler detected.
+	JVM version is 25.152-b16
+	finding class loader instances ..done.
+	computing per loader stat ..done.
+	please wait.. computing liveness.liveness analysis may be inaccurate ...
+	class_loader    classes bytes   parent_loader   alive?  type
+	
+	<bootstrap>     3434    5977773   null          live    <internal>
+	0x0000000782da96d8      1       880       null          dead    sun/reflect/DelegatingClassLoader@0x00000007c0009df8
+	0x00000006c36fee68      1       1471      null          dead    sun/reflect/DelegatingClassLoader@0x00000007c0009df8
+	0x0000000782ef45e8      1       880     0x00000006c1a1cb88      dead    sun/reflect/DelegatingClassLoader@0x00000007c0009df8
+	0x0000000782dab6d0      1       1472    0x00000006c1a1cb88      dead    sun/reflect/DelegatingClassLoader@0x00000007c0009df8
+	0x0000000782fb5df0      1       1471    0x00000006c1a1cb88      dead    sun/reflect/DelegatingClassLoader@0x00000007c0009df8
+	0x00000007825c0950      0       0         null          dead    net/sf/ehcache/EhcacheDefaultClassLoader@0x00000007c0a4c348
+	......
+	0x00000006c3756088      1       880     0x00000006c1a1cb88      dead    sun/reflect/DelegatingClassLoader@0x00000007c0009df8
+	0x00000006c36feb90      1       1471      null          dead    sun/reflect/DelegatingClassLoader@0x00000007c0009df8
+
+	total = 136     15563   25685120            N/A         alive=1, dead=135           N/A
+
+jamp还可以查看系统的ClassLoader的信息，显示了它们的父子关系。同时也显示了每个ClassLoader内部加载的类的数量和总大小。
+
+示例四：
+
+	D:\MyWork\JavaStudy>jmap -finalizerinfo 19812
+	Attaching to process ID 19812, please wait...
+	Debugger attached successfully.
+	Server compiler detected.
+	JVM version is 25.152-b16
+	Number of objects pending for finalization: 0
+
+通过jmap还可以观察系统finalizer队列中的对象。
+
+## jhat ##
+使用jhat命令可以分析Java应用程序的堆快照内容。(jhat在JDK9、JDK10已经删除，建议用VisualVm代替)
+
+示例：
+
+	D:\MyWork\JavaStudy>jhat D:\heap.hprof
+	Reading from D:\heap.hprof...
+	Dump file created Sun Mar 21 19:32:36 CST 2021
+	Snapshot read, resolving...
+	Resolving 3222799 objects...
+	Chasing references, expect 644 dots..................................................................
+	Eliminating duplicate references..........................................................
+	Snapshot resolved.
+	Started HTTP server on port 7000
+	Server is ready.
+
+分析上文jmap生成的堆文件，使用http服务器展示其分析结果，浏览器中访问http://127.0.0.1:7000/可以看到输出结果。
+
+在默认页中，jhat服务器显示了所有的非平台类信息。单击链接，可以查看选中类的超类、ClassLoader及该类的实例等信息。此外，在页面底部，还为开发人员提供了其他查询方式。
