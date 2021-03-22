@@ -209,3 +209,80 @@ jamp还可以查看系统的ClassLoader的信息，显示了它们的父子关�
 分析上文jmap生成的堆文件，使用http服务器展示其分析结果，浏览器中访问http://127.0.0.1:7000/可以看到输出结果。
 
 在默认页中，jhat服务器显示了所有的非平台类信息。单击链接，可以查看选中类的超类、ClassLoader及该类的实例等信息。此外，在页面底部，还为开发人员提供了其他查询方式。
+
+## jstack ##
+jstack命令用于导出Java应用程序的线程栈，语法为：
+
+`jstack [-l] <pid>`
+
+-l选项用于打印锁的附加信息。
+
+jstack命令会在控制台输出程序中所有的锁信息，可以使用重定向将输出保存到文件中
+
+jstack还可以自动进行死锁检查，如DeadLoack.java中使用
+
+`D:\MyWork\JavaStudy>jstack -l 22096`
+
+可得结果：
+
+	Found one Java-level deadlock:
+	=============================
+	"north":
+	waiting for ownable synchronizer 0x000000076b538a60, (a java.util.concurrent.locks.ReentrantLock$NonfairSync),
+	which is held by "south"
+	"south":
+	waiting for ownable synchronizer 0x000000076b538a30, (a java.util.concurrent.locks.ReentrantLock$NonfairSync),
+	which is held by "north"
+
+## jstatd ##
+一些监控工具也支持对远程计算机的监控。为了启用远程监控，需要配合使用jstatd命令。
+
+jstatd命令是一个RMI服务端程序。作用相当于代理服务器，建立本地计算机与远程监控工具的通信。jstatd服务器将本机Java应用程序信息传递到远程计算机。
+
+##jcmd ##
+JDK1.7以后新增的命令，是一个多功能的工具。
+
+示例：
+
+	D:\MyWork\JavaStudy>jcmd -l
+	4144 org.jetbrains.jps.cmdline.Launcher D:/IntelliJ IDEA Community Edition 2020.3/lib/annotations.jar;D:/IntelliJ IDEA Community Edition 2020.3/lib/maven-builder-support-3.6.1.jar;D:/Intel
+	liJ IDEA Community Edition 2020.3/plugins/java/lib/jps-javac-extension-1.jar;D:/IntelliJ IDEA Community Edition 2020.3/lib/protobuf-java-3.13.0.jar;D:/IntelliJ IDEA Community Edition 2020.
+	3/lib/jps-model.jar;D:/IntelliJ IDEA Community Edition 2020.3/lib/maven-resolver-provider-3.6.1.jar;D:/IntelliJ IDEA Community Edition 2020.3/plugins/java/lib/jps-builders.jar;D:/IntelliJ
+	IDEA Community Edition 2020.3/lib/intellij-deps-fastutil-8.4.1-4.jar;D:/IntelliJ IDEA Community Edition 2020.3/plugins/java/lib/aether-dependency-resolver.jar;D:/IntelliJ IDEA Community Ed
+	ition 2020.3/plugins/java/lib/maven-resolver-transport-file-1.3.3.jar;D:/IntelliJ IDEA Community Edition 2020.3/lib/resources_en.jar;D:/IntelliJ IDEA Community Edition 2020.3/lib/slf4j-api
+	-1.7.25.jar;D:/IntelliJ IDEA Community Edition 2020.3/lib/netty-common-4.1.52.Final.jar;D
+	13284
+	16892 sun.tools.jcmd.JCmd -l
+
+参数-l表示列出所有的Java虚拟机，针对每一个虚拟机，jcmd命令可以使用help命令列出所有支持的命令：
+
+	D:\MyWork\JavaStudy>jcmd 4144 help
+	4144:
+	The following commands are available:
+	JFR.stop
+	JFR.start
+	JFR.dump
+	JFR.check
+	VM.native_memory
+	VM.check_commercial_features
+	VM.unlock_commercial_features
+	ManagementAgent.stop
+	ManagementAgent.start_local
+	ManagementAgent.start
+	GC.rotate_log
+	Thread.print		//打印线程栈
+	GC.class_stats
+	GC.class_histogram
+	GC.heap_dump
+	GC.run_finalization
+	GC.run
+	VM.uptime	//查看虚拟机启动时间
+	VM.flags		//获得启动参数
+	VM.system_properties		//获得系统的properties
+	VM.command_line
+	VM.version
+	help
+
+	For more information about a specific command use 'help <command>'.
+
+

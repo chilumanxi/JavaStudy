@@ -8,6 +8,8 @@
       <sourceFolder url="file://$MODULE_DIR$/JVM/内存模型/堆溢出处理·" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/JVM/内存模型/最大堆和初始堆" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/JVM/内存模型/栈上分配" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/JVM/JDK性能监控工具/死锁" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/JVM/内存模型/MAT堆分析" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
