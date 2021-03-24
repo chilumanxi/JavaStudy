@@ -10,10 +10,12 @@
       <sourceFolder url="file://$MODULE_DIR$/JVM/内存模型/栈上分配" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/JVM/JDK性能监控工具/死锁" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/JVM/Java并发编程/CountDownLatch" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/JVM/Java并发编程/Java内存模型的特性/原子性" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/JVM/Java并发编程/Java内存模型的特性/可见性" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/JVM/Java并发编程/不安全的线程示例" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/JVM/Java并发编程/并发读写long" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/JVM/Java并发编程/无锁的原子操作" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/JVM/内存模型/MAT堆分析" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Test" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
