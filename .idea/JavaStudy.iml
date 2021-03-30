@@ -16,6 +16,9 @@
       <sourceFolder url="file://$MODULE_DIR$/JVM/Java并发编程/无锁的原子操作" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/JVM/内存模型/MAT堆分析" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/Test" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/NIO/NIO入门/BIO" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/NIO/NIO入门/JavaSocket" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
