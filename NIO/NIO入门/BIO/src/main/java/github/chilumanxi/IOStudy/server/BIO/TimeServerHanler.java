@@ -1,4 +1,4 @@
-package github.chilumanxi.BIOTest.server;
+package github.chilumanxi.IOStudy.server.BIO;
 
 import java.io.BufferedReader;
 import java.io.IOException;

@@ -1,8 +1,7 @@
-package github.chilumanxi.BIOTest.server;
+package github.chilumanxi.IOStudy.server.NIO;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -39,7 +38,7 @@ public class MultiplexerTimeServer implements Runnable {
         while(!stop){
             try{
 //                多路复用器轮询准备就绪的Key
-                selector.select(1000    );
+                selector.select(1000);
                 Set<SelectionKey> selectionKeySet = selector.selectedKeys();
                 Iterator<SelectionKey> it = selectionKeySet.iterator();
                 SelectionKey key = null;
@@ -77,7 +76,7 @@ public class MultiplexerTimeServer implements Runnable {
                 ServerSocketChannel ssc = (ServerSocketChannel) key.channel();
                 SocketChannel sc = ssc.accept();
                 sc.configureBlocking(false);
-                sc.register(selector, SelectionKey.OP_ACCEPT);
+                sc.register(selector, SelectionKey.OP_READ);
             }
             if(key.isReadable()){
                 SocketChannel sc = (SocketChannel) key.channel();
@@ -88,6 +87,7 @@ public class MultiplexerTimeServer implements Runnable {
                     byte[] bytes = new byte[readBuffer.remaining()];
                     readBuffer.get(bytes);
                     String body = new String(bytes, "UTF-8");
+//                            .replaceAll("(\r\n|\r|\n|\n\r)", "");
                     System.out.println("The time server receive order : " + body);
                     String currentTime = "QUERY TIME ORDER".equalsIgnoreCase(body) ?
                             new java.util.Date(System.currentTimeMillis()).toString() : "BAD ORDER";

@@ -64,7 +64,7 @@ Channel可以通过它读取和写入数据，与流不同，通道是双向的�
 多路复用器提供选择已经就绪的任务的能力。Selector会不断的轮询注册在其上的Channel，如果某个Channel上面有新的TCP连接接入、读和写事件，这个Channel就处于就绪状态，会被Selector轮询出来，然后通过SelectionKey可以获取就绪Channel的集合，进行后续的I/O操作。
 
 
-### NIO服务端序列图 ###
+### NIO服务端 ###
 
 ![](https://img-blog.csdnimg.cn/2021033020544958.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0NoaUx1TWFuWGk=,size_16,color_FFFFFF,t_70)
 
@@ -141,3 +141,108 @@ Channel可以通过它读取和写入数据，与流不同，通道是双向的�
 11. 将POJO对象encode成ByteBuffer，调用SocketChannel的异步write接口，将消息异步发送给客户端，代码如下：
 
     	socketChannel.write(buffer);
+
+具体代码详见NIOTimeServer.java
+
+### NIO客户端 ###
+
+客户端创建序列图如下：
+
+![](https://img-blog.csdnimg.cn/20210331111023406.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0NoaUx1TWFuWGk=,size_16,color_FFFFFF,t_70)
+
+步骤如下：
+
+1. 打开SocketChannel，绑定客户端本地地址，代码如下：
+
+   	SocketChannel clientChannel = SocketChannel.open();
+
+2. 设置SocketChannel为非阻塞模式，同时设置TCP参数，代码如下：
+
+   	clientChannel.configureBlocking(false);
+   	socket.setReuseAddress(true);
+   	socket.setReceiveBufferSize(BUFFER_SIZE);
+   	socket.setSendBufferSize(BUFFER_SIZE);
+
+3. 异步连接服务器，代码如下：
+
+   	boolean connected = clientChannel.connect(new InetSocketAddress("ip", port));
+
+4. 判断是否连接成功，如果成功，则直接注册状态到多路复用器中，如果当前没有连接成功（返回false，表示客户端已经发sync包，服务端没有返回ack包，物理链路还没有成立），示例代码如下：
+
+   	if(connected){
+   		clientChannel.register(selector, SelectionKey.OP_READ, ioHandler);
+   	}else{
+   		clientChannel.register(selector, SelectionKey.OP_CONNECT, ioHandler);
+   	}
+
+5. 注册CONNECT事件，代码如步骤四中没有连接的部分
+
+6. 创建Reactor线程，创建多路复用器并启动线程，代码如下：
+
+   	Selector selector = Selector.open(); 
+   	New Thread(new ReactorTask()).start();
+
+7. 多路复用器在线程run方法的无限循环体轮询准备就绪的Key，代码如下：
+
+   	Set selectedKeys = selector.selectedKeys();
+   	Iterator it = selectedKeys.iterator();
+   	while(it.hasNext()){
+   		SelectionKey key = (SelectionKey)it.next();
+   		// ... deal with I/O event ...
+
+8. 接受connect事件进行处理，代码如下：
+
+   	if(key.isConnectable())
+   		handleConnect();
+
+9. 判断连接成功，如果连接成功，注册读事件到多路复用器，代码如下：
+
+   	if(channel.finishConnect())
+   		registerRead();
+
+10. 注册读事件到多路复用器，代码如下：
+
+    	clientChannel.register(selector, SelectionKey.OP_READ, ioHandler);
+
+11. 异步读客户端请求消息到缓冲区，代码如下：
+
+    	int readNumber = channel.read(receivedBuffer);
+
+12.  对ByteBuffer进行编解码，如果有半包消息至臻reset，继续读取后续的保温，讲解码成功的消息封装成Task，投递到业务线程池中，进行业务逻辑编排，代码如下：
+
+     Object message = null;
+     while(buffer.hasRemain()){
+     byteBuffer.mark();
+     Object message = decode(byteBuffer);
+     if(message == null){
+     byteBuffer.reset();
+     break;
+     }
+     messageList.add(message);
+     }
+     if(!byteBuffer.hasRemain()){
+     byteBuffer.clear();
+     }else{
+     byteBuffer.compact();
+     }
+     if(messageList != null & !messageList.isEmpty()){
+     for(Object messagE : messageList){
+     handlerTask(messagE);
+     }
+     }
+
+13. 将POJO对象encode成ByteBuffer，调用SocketChannel的异步write接口，将消息异步发送给客户端，代码如下：
+
+    	socketChannel.write(buffer);
+
+实例详见NIOTimeClient.java
+
+### AIO模型 ###
+NIO2.0引入了新的异步通道的概念，并提供了异步文件通道和异步套接字通道的实现。异步通道提供两种方式获取操作结果。
+
+- 通过java.util.concurrent.Future类来表示异步操作的结果
+- 在执行异步操作的时候传入一个java.nio.channels
+
+NIO2.0的异步套接字通道是真正的异步非阻塞I/O，它对应UNIX网络编程中的事件驱动I/O（AIO），它不需要多路复用器对注册的通道进行轮询操作即可实现异步读写，简化了NIO的编程模型
+
+具体代码实现详见AIOTimeServer.java和AIOTimeClient.java
