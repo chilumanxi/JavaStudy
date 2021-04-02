@@ -4,6 +4,8 @@
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/NIO/NIO入门/BIO/pom.xml" />
+        <option value="$PROJECT_DIR$/NIO/Netty/netty-time/pom.xml" />
+        <option value="$PROJECT_DIR$/NIO/Netty/netty-subscribe/pom.xml" />
       </list>
     </option>
   </component>

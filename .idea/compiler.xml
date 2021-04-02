@@ -1,26 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
+    <option name="BUILD_PROCESS_ADDITIONAL_VM_OPTIONS" value="-Djps.track.ap.dependencies=false" />
     <annotationProcessing>
       <profile name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="BIO" />
+        <module name="netty-subscribe" />
         <module name="netty-gateway" />
+        <module name="netty-time" />
+        <module name="IO" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="BIO" target="8" />
       <module name="GateWay" target="8" />
+      <module name="IO" target="8" />
       <module name="JavaStudy" target="8" />
       <module name="netty-gateway" target="8" />
+      <module name="netty-subscribe" target="8" />
+      <module name="netty-time" target="8" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="JavaStudy" options="" />
       <module name="netty-gateway" options="-parameters" />
+      <module name="netty-time" options="-parameters" />
     </option>
   </component>
 </project>

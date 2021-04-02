@@ -1,4 +1,4 @@
-public class localVarGcTest {
+class localVarGcTest {
 
 //    旨在证明临时变量表引用和GC回收的关系
 //    当某个临时变量被引用时，GC不对其进行回收
