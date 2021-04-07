@@ -1,5 +1,8 @@
 package github.chilumanxi.gateway.outbound;
 
+import github.chilumanxi.gateway.filter.HttpRequestFilter;
+import github.chilumanxi.gateway.filter.HttpResponseFilter;
+import github.chilumanxi.gateway.filter.impl.HttpResponseFilterImpl;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -27,6 +30,7 @@ public class HttpOutboundHandler {
     private static CloseableHttpAsyncClient httpClient;
     private ExecutorService proxyService;
     private String backendUrl;
+    HttpResponseFilter filter = new HttpResponseFilterImpl();
 
     public HttpOutboundHandler(String backendUrl) {
         this.backendUrl = backendUrl.endsWith("/") ? backendUrl.substring(0, backendUrl.length() - 1) : backendUrl;
@@ -55,8 +59,9 @@ public class HttpOutboundHandler {
         httpClient.start();
     }
 
-    public void handler(FullHttpRequest fullHttpRequest, final ChannelHandlerContext ctx) {
+    public void handler(FullHttpRequest fullHttpRequest, final ChannelHandlerContext ctx, HttpRequestFilter filter) {
         final String url = this.backendUrl + fullHttpRequest.uri();
+        filter.filter(fullHttpRequest, ctx);
         proxyService.submit(() -> fetchGet(fullHttpRequest, ctx, url));
     }
 
@@ -94,9 +99,11 @@ public class HttpOutboundHandler {
             byte[] body = EntityUtils.toByteArray(httpResponse.getEntity());
 
             fullHttpResponse = new DefaultFullHttpResponse(HTTP_1_1, OK, Unpooled.wrappedBuffer(body));
-            fullHttpResponse.headers().set("nio", fullHttpRequest.headers().get("nio"));
+
             fullHttpResponse.headers().set("Content-Type", "application/json");
             fullHttpResponse.headers().setInt("Content-Length", Integer.parseInt(httpResponse.getFirstHeader("Content-Length").getValue()));
+            filter.filter(fullHttpResponse);
+
         } catch (IOException e) {
             e.printStackTrace();
             fullHttpResponse = new DefaultFullHttpResponse(HTTP_1_1, NO_CONTENT);

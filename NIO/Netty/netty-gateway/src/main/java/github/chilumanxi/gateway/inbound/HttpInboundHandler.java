@@ -17,6 +17,7 @@ public class HttpInboundHandler extends ChannelInboundHandlerAdapter {
     private static Logger logger = LoggerFactory.getLogger(HttpInboundHandler.class);
     private final String proxyServer;
     private HttpOutboundHandler handler;
+    private HttpRequestFilter filter = new HttpRequestFilterImpl();
 
     public HttpInboundHandler(String proxyServer) {
         this.proxyServer = proxyServer;
@@ -32,9 +33,7 @@ public class HttpInboundHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg){
         try{
             FullHttpRequest fullHttpRequest = (FullHttpRequest) msg;
-            HttpRequestFilter filter = new HttpRequestFilterImpl();
-            filter.filter(fullHttpRequest,ctx);
-            handler.handler(fullHttpRequest,ctx);
+            handler.handler(fullHttpRequest,ctx,filter);
         }catch (Exception e){
             e.printStackTrace();
         }finally {

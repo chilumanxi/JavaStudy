@@ -7,11 +7,7 @@ import io.netty.handler.codec.http.FullHttpRequest;
 public class HttpRequestFilterImpl implements HttpRequestFilter {
 
     @Override
-    public void filter(FullHttpRequest fullHttpRequest, ChannelHandlerContext ctx) {
-        filterHead(fullHttpRequest,ctx);
-    }
-
-    private void filterHead(FullHttpRequest fullHttpRequest, ChannelHandlerContext ctx) {
-        fullHttpRequest.headers().set("nio","ChiLuManXi");
+    public void filter(FullHttpRequest fullRequest, ChannelHandlerContext ctx) {
+        fullRequest.headers().set("nio", "chilumanxi");
     }
 }

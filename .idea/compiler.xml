@@ -8,8 +8,10 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="netty-subscribe" />
+        <module name="netty-file" />
         <module name="netty-gateway" />
         <module name="netty-time" />
+        <module name="netty-order" />
         <module name="IO" />
       </profile>
     </annotationProcessing>
@@ -17,7 +19,9 @@
       <module name="GateWay" target="8" />
       <module name="IO" target="8" />
       <module name="JavaStudy" target="8" />
+      <module name="netty-file" target="8" />
       <module name="netty-gateway" target="8" />
+      <module name="netty-order" target="8" />
       <module name="netty-subscribe" target="8" />
       <module name="netty-time" target="8" />
     </bytecodeTargetLevel>
