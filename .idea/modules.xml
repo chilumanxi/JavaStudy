@@ -5,11 +5,14 @@
       <module fileurl="file://$PROJECT_DIR$/NIO/NIO入门/IO/IO.iml" filepath="$PROJECT_DIR$/NIO/NIO入门/IO/IO.iml" />
       <module fileurl="file://$PROJECT_DIR$/JVM/JVM.iml" filepath="$PROJECT_DIR$/JVM/JVM.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/JavaStudy.iml" filepath="$PROJECT_DIR$/.idea/JavaStudy.iml" />
+      <module fileurl="file://$PROJECT_DIR$/CONCURRENCY/多线程/ThreadTest/ThreadTest.iml" filepath="$PROJECT_DIR$/CONCURRENCY/多线程/ThreadTest/ThreadTest.iml" />
       <module fileurl="file://$PROJECT_DIR$/NIO/Netty/netty-file/netty-file.iml" filepath="$PROJECT_DIR$/NIO/Netty/netty-file/netty-file.iml" />
       <module fileurl="file://$PROJECT_DIR$/NIO/Netty/netty-gateway/netty-gateway.iml" filepath="$PROJECT_DIR$/NIO/Netty/netty-gateway/netty-gateway.iml" />
       <module fileurl="file://$PROJECT_DIR$/NIO/Netty/netty-order/netty-order.iml" filepath="$PROJECT_DIR$/NIO/Netty/netty-order/netty-order.iml" />
       <module fileurl="file://$PROJECT_DIR$/NIO/Netty/netty-subscribe/netty-subscribe.iml" filepath="$PROJECT_DIR$/NIO/Netty/netty-subscribe/netty-subscribe.iml" />
       <module fileurl="file://$PROJECT_DIR$/NIO/Netty/netty-time/netty-time.iml" filepath="$PROJECT_DIR$/NIO/Netty/netty-time/netty-time.iml" />
+      <module fileurl="file://$PROJECT_DIR$/SPRING/AOP/proxy01/proxy01.iml" filepath="$PROJECT_DIR$/SPRING/AOP/proxy01/proxy01.iml" />
+      <module fileurl="file://$PROJECT_DIR$/SPRING/SPRING/spring01/spring01.iml" filepath="$PROJECT_DIR$/SPRING/SPRING/spring01/spring01.iml" />
     </modules>
   </component>
 </project>

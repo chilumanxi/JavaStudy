@@ -129,16 +129,17 @@ public class Atomic {
         Atomic a = new Atomic();
         a.testSync();
         a.testAtomic();
-        a.testAtomic();
+        a.testLongAdder();
     }
 }
 
-//        SyncThread spend:406ms v=10000002
-//        SyncThread spend:406ms v=10000001
-//        SyncThread spend:406ms v=10000000
-//        AtomicThread spend:166ms v=10000002
-//        AtomicThread spend:166ms v=10000000
-//        AtomicThread spend:166ms v=10000001
-//        AtomicThread spend:0ms v=10000002
-//        AtomicThread spend:0ms v=10000002
-//        AtomicThread spend:1ms v=10000002
+//        SyncThread spend:408ms v=10000001
+//        SyncThread spend:408ms v=10000000
+//        SyncThread spend:408ms v=10000002
+//        AtomicThread spend:151ms v=10000002
+//        AtomicThread spend:151ms v=10000001
+//        AtomicThread spend:151ms v=10000000
+//        LongAdderThread spend:202ms v=10000001
+//        LongAdderThread spend:202ms v=10000001
+//        LongAdderThread spend:202ms v=10000001
+

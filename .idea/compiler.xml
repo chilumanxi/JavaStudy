@@ -3,19 +3,24 @@
   <component name="CompilerConfiguration">
     <option name="BUILD_PROCESS_ADDITIONAL_VM_OPTIONS" value="-Djps.track.ap.dependencies=false" />
     <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
       <profile name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="netty-subscribe" />
-        <module name="netty-file" />
-        <module name="netty-gateway" />
-        <module name="netty-time" />
         <module name="netty-order" />
         <module name="IO" />
+        <module name="netty-subscribe" />
+        <module name="netty-file" />
+        <module name="proxy01" />
+        <module name="spring01" />
+        <module name="netty-gateway" />
+        <module name="netty-time" />
+        <module name="ThreadTest" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="bean-assemble" target="8" />
       <module name="GateWay" target="8" />
       <module name="IO" target="8" />
       <module name="JavaStudy" target="8" />
@@ -24,6 +29,9 @@
       <module name="netty-order" target="8" />
       <module name="netty-subscribe" target="8" />
       <module name="netty-time" target="8" />
+      <module name="proxy01" target="8" />
+      <module name="spring01" target="8" />
+      <module name="ThreadTest" target="8" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">

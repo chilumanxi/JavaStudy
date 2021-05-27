@@ -22,6 +22,8 @@ public class SolveStickyPacketTimeClientHandler extends ChannelHandlerAdapter {
         for (int i = 0; i < 100; i++) {
             message = Unpooled.buffer(req.length);
             message.writeBytes(req);
+//          ChannelHandlerContext.write() (和 writeAndFlush() )方法会返回一个 ChannelFuture 对象
+//          一个 ChannelFuture 代表了一个还没有发生的 I/O 操作。这意味着任何一个请求操作都不会马上被执行，因为在 Netty 里所有的操作都是异步的
             ctx.writeAndFlush(message);
         }
     }

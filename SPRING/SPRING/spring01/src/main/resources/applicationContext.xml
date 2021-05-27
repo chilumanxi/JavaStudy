@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                        http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+                        http://www.springframework.org/schema/context
+                        http://www.springframework.org/schema/context/spring-context-3.2.xsd http://www.springframework.org/schema/aop https://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <bean id="student123"
+          class="github.chilumanxi.spring01.Student">
+        <property name="id" value="123" />
+        <property name="name" value="xiaoMing123" />
+    </bean>
+
+    <bean id="student100"
+          class="github.chilumanxi.spring01.Student">
+        <property name="id" value="100" />
+        <property name="name" value="xiaoHong100" />
+    </bean>
+
+    <bean id="class1"
+          class="github.chilumanxi.spring02.Klass">
+        <property name="students">
+            <list>
+                <ref bean="student123" />
+                <ref bean="student100" />
+            </list>
+        </property>
+    </bean>
+
+    <context:component-scan base-package="github.chilumanxi.spring02" />
+
+    <bean id="aop1" class="github.chilumanxi.spring02.Aop1" />
+    <bean id="aop2" class="github.chilumanxi.spring02.Aop2" />
+
+    <!--    <aop:aspectj-autoproxy proxy-target-class="true" />-->
+
+    <aop:aspectj-autoproxy  />
+
+    <aop:config>
+        <aop:pointcut id="p1" expression="execution(* github.chilumanxi.aop.*.*(..))"/>
+        <aop:aspect ref="aop1">
+            <aop:around method="around" pointcut-ref="p1" />
+            <aop:before method="startTransaction" pointcut-ref="p1" />
+            <aop:after-returning method="commitTransaction" pointcut-ref="p1" />
+        </aop:aspect>
+    </aop:config>
+
+    <bean id="school" class="github.chilumanxi.spring02.School" ></bean>
+
+</beans>

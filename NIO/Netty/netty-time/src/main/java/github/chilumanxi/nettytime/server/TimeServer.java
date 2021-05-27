@@ -30,11 +30,13 @@ public class TimeServer {
 
     private void bind(int port) {
 //        线程组，包含了一组NIO线程，专门用于网络事件的处理，其实是Reactor线程组
+//        NioEventLoopGroup 是用来处理I/O操作的多线程事件循环器
+
 //        bossGroup负责服务端接受客户端的连接
         EventLoopGroup bossGroup = new NioEventLoopGroup();
 //        workGroup负责进行SocketChannel的网络读写
         EventLoopGroup workGroup = new NioEventLoopGroup();
-
+//
         try{
 //            Netty用于启动NIO服务端的辅助启动类
             ServerBootstrap b = new ServerBootstrap();

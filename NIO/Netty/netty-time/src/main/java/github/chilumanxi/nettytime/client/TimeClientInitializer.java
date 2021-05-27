@@ -10,15 +10,17 @@ public class TimeClientInitializer extends ChannelInitializer<SocketChannel> {
     @Override
     protected void initChannel(SocketChannel socketChannel) throws Exception {
         ChannelPipeline ch =  socketChannel.pipeline();
-//        ch.addLast(new TimeClientHandler());
+
+        ch.addLast(new StringDecoder());
+        ch.addLast(new TimeClientHandler());
 
 //        粘包测试：
 //        ch.addLast(new StickyPacketTimeClientHandler());
 
 //        解决粘包问题
-        ch.addLast(new LineBasedFrameDecoder(1024));
-        ch.addLast(new StringDecoder());
-        ch.addLast(new SolveStickyPacketTimeClientHandler());
+//        ch.addLast(new LineBasedFrameDecoder(1024));
+//        ch.addLast(new StringDecoder());
+//        ch.addLast(new SolveStickyPacketTimeClientHandler());
     }
 
 }

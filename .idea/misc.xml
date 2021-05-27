@@ -8,6 +8,9 @@
         <option value="$PROJECT_DIR$/NIO/Netty/netty-subscribe/pom.xml" />
         <option value="$PROJECT_DIR$/NIO/Netty/netty-file/pom.xml" />
         <option value="$PROJECT_DIR$/NIO/Netty/netty-order/pom.xml" />
+        <option value="$PROJECT_DIR$/CONCURRENCY/多线程/ThreadTest/pom.xml" />
+        <option value="$PROJECT_DIR$/SPRING/SPRING/spring01/pom.xml" />
+        <option value="$PROJECT_DIR$/SPRING/AOP/proxy01/pom.xml" />
       </list>
     </option>
   </component>

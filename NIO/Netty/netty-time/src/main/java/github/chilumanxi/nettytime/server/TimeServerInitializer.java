@@ -11,7 +11,9 @@ public class TimeServerInitializer extends ChannelInitializer<SocketChannel> {
     @Override
     protected void initChannel(SocketChannel socketChannel) throws Exception {
         ChannelPipeline ch = socketChannel.pipeline();
-//        ch.addLast(new TimeServerHandler());
+
+        ch.addLast(new StringDecoder());
+        ch.addLast(new TimeServerHandler());
 
 
 //        粘包测试
@@ -19,8 +21,8 @@ public class TimeServerInitializer extends ChannelInitializer<SocketChannel> {
 
 
 //        解决粘包问题
-        ch.addLast(new LineBasedFrameDecoder(1024));
-        ch.addLast(new StringDecoder());
-        ch.addLast(new SolveStickyPacketTimeServerHandler());
+//        ch.addLast(new LineBasedFrameDecoder(1024));
+//        ch.addLast(new StringDecoder());
+//        ch.addLast(new SolveStickyPacketTimeServerHandler());
     }
 }
