@@ -171,7 +171,121 @@ public enum Product
 
 #### AAA(Arrange、Act、Assert)原则
 
-Arrange是输入条件，Act是执行的动作，Assert是单元测试的断言，一般我们倾向于将测试代码分为这三部分，每一部分放在一起。
+Arrange是输入条件，将被测系统 (SUT) 及其依赖项初始化，Act是执行的动作，调用 SUT 上的方法，传递准备好的依赖项，并捕获输出值。Assert是单元测试的断言，用于验证结果。一般我们倾向于将测试代码分为这三部分，每一部分放在一起。
+
+3A模式为单元测试提供了一个更简单，更统一的结构，会使单元测试更有可读性。
+
+测试驱动开发（TDD）
+
+​	开发功能之前尝试创建失败的测试，这时候我们对功能的行为还不够了解。思考和概述我们对行为的期望，然后弄清楚如何开发系统以满足这种期望。这种技术可能看起来违反常理，但这就是我们解决问题的方式。我们首先考虑目标：对于特定行为我们应该做什么。然后再解决问题。在写业务代码之前写下断言只是这种思维过程的形式化。但是，这条准则仅适用于遵循 TDD 的情况——即在生产代码之前编写测试
+
+图3.1
+
+要避免多个Arrange、Act和Assert，当看到多个由Assert分隔的Act部分时，可能还有Arrange部分，这意味着测试验证了多个行为单元。 正如我们之前讨论的，这样的测试不再是单元测试而是集成测试。我们要尝试避免这样的测试结构。 保持在单元测试的范围内。 如果看到包含一系列操作和断言的测试，要Udine其进行重构， 将每个动作提取到它自己的测试中。
+
+要避免测试中的if语句
+
+我们要求单元测试是简单的步骤序列，没有分支，if语句只会带来额外的维护成本并使测试代码更难阅读和理解
+
+那么AAA应该各个部分应该有多大呢
+
+首先Arrange部分是最大的，可以等于剩下两者的总和，但是如果太多的话，最好还是提取到一个测试类的私有方法中，或者分离提炼出工厂类。
+
+其次，要注意大于一行的Act部分，Act通常只有一行代码，如果这个行为有多行代码，代表被测代码的公共API有问题。
+
+```
+public void Purchase_succeeds_when_enough_inventory()
+{
+	// Arrange
+	var store = new Store();
+	store.AddInventory(Product.Shampoo, 10);
+	var customer = new Customer();
+	// Act
+	bool success = customer.Purchase(store, Product.Shampoo, 5);
+	store.RemoveInventory(success, Product.Shampoo, 5);
+	// Assert
+	Assert.True(success);
+	Assert.Equal(5, store.GetInventory(Product.Shampoo));
+}
+```
+
+问题在于 Customer 类的接口类。 它不应该要求用户进行额外的方法调用。从商业角度来看，一次成功的购买有两个结果：客户购买了产品和减少了商店的库存。这两个结果必须一起实现，这意味着应该有一个公共方法可以做到 两件事。 否则，如果客户端代码调用第一种方法而不调用第二种方法，则存在不一致的空间，在这种情况下，客户获得产品，但其在商店中的可用数量不会减少
+
+最后Assert阶段要考虑要维护多少个断言。单元测试中的单元是行为单元，而不是代码单元。 一个行为单元可以表现出多种结果，可以在一次测试中有多个断言。 但是话虽如此，要需要注意过大的断言部分，这可能是代码缺少抽象的迹象。
+
+将被测代码返回命名区分度的名字，使其与依赖项分开，如下：
+
+```
+public class CalculatorTests
+{
+	public void Sum_of_two_numbers()
+	{
+		// Arrange
+		double first = 10;
+		double second = 20;
+		var sut = new Calculator();	//The calculator is now called sut
+		// Act
+		double result = sut.Sum(first, second);
+		// Assert
+		Assert.Equal(30, result);
+	}
+}
+```
+
+注意用空格或者注释分隔开三个部分
+
+要注意重用测试代码
+
+```
+public class CustomerTests
+{
+	public void Purchase_succeeds_when_enough_inventory()
+	{
+		Store store = CreateStoreWithInventory(Product.Shampoo, 10);
+		Customer sut = CreateCustomer();
+		bool success = sut.Purchase(store, Product.Shampoo, 5);
+		Assert.True(success);
+		Assert.Equal(5, store.GetInventory(Product.Shampoo));
+	}
+	public void Purchase_fails_when_not_enough_inventory()
+	{
+		Store store = CreateStoreWithInventory(Product.Shampoo, 10);
+		Customer sut = CreateCustomer();
+		bool success = sut.Purchase(store, Product.Shampoo, 15);
+		Assert.False(success);
+		Assert.Equal(10, store.GetInventory(Product.Shampoo));
+	}
+	private Store CreateStoreWithInventory(Product product, int quantity)
+	{
+		Store store = new Store();
+		store.AddInventory(product, quantity);
+		return store;
+	}
+	private static Customer CreateCustomer()
+	{
+		return new Customer();
+	}
+}
+```
+
+如上面的代码，两个测试方法都要用到同样的逻辑配置，所以可以提取到构造函数中或者引入工厂类。但是构造函数会导致测试之间高耦合，并且会降低可读性，所以推荐用工厂类，除非这个构造函数每个测试类都要用到，如数据库初始化。
+
+测试命名规范：[被测代码的方法]\_[测试条件、参数]\_[期望结果]，如以下代码：
+
+```
+public class CalculatorTests
+{
+	public void Sum_of_two_numbers()
+	{
+		double first = 10;
+		double second = 20;
+		var sut = new Calculator();
+		double result = sut.Sum(first, second);
+		Assert.Equal(30, result);
+	}
+}
+//改写后名字应该叫做public void Sum_TwoNumbers_ReturnsSum()
+```
 
 
 
@@ -223,6 +337,12 @@ public void Purchase_fails_when_not_enough_inventory()
 
 我们注意到，在Arrange阶段，我们没有实例化Store类，取而代之的是用一个·创建了一个Mock<T>去替代它。另外，我们直接告诉mock怎么去响应调用HasEnoughInventory方法，用这个方法来取代添加库存的操作，这样做的好处是，无论Store是否有问题，mock都会返回测试需要的结果。我们再关注断言阶段，相应的，我们也不再通过检测获取Store类的库存值后比较的方法来做测试，而是通过Customer和Store的交互来检测，如果Customer执行成功，那么他至少会执行一次Remove方法，反之则一次都不会执行。通过以上的方式，这个单元测试就只针对Customer类进行了测试，实现了与Store类的完全解耦。
 
+优点总结：
+
+- 更好的粒度
+- 更易于测试更大的互连类图进行单元
+- 发现问题所在很快
+
 ### Classical School
 
 ​	还有一种可以解释隔离属性的方式——传统方式。在传统方式中，并不是代码需要以隔离的方式进行测试，而是单元测试本身需要互相隔离。你可以并行、串行或者以任何方式你最需要的方式运行而都不会担心他们会互相影响彼此的输出。
@@ -238,10 +358,51 @@ public void Purchase_fails_when_not_enough_inventory()
 综上所述，London学派和传统学派的根本区别就是隔离方式的差异。London学派将被测系统与其合作者相分离，而传统学派则是侧重于单元测试之间的隔离。两者的主要区别有以下三点：
 
 - 隔离的要求
+
 - 怎么定义一个被测的代码块
+
 - 解决依赖的方法
 
-|      |      |      |      |
-| ---- | ---- | ---- | ---- |
-|      |      |      |      |
+  总结如下：
+
+|          | 隔离单位 | 单元定义       | 测试替代作用               |
+| -------- | -------- | -------------- | -------------------------- |
+| 伦敦学派 | 单元     | 一个类         | 除了不可变的依赖以外的一切 |
+| 传统学派 | 单元测试 | 一个或者一组类 | 共享依赖                   |
+
+那么什么事不可变依赖呢，
+
+```
+public void Purchase_succeeds_when_enough_inventory()
+{
+	// Arrange
+	var storeMock = new Mock<IStore>();
+	storeMock
+		.Setup(x => x.HasEnoughInventory(Product.Shampoo, 5))
+		.Returns(true);
+	var customer = new Customer();
+	// Act
+	bool success = customer.Purchase(
+		storeMock.Object, Product.Shampoo, 5);
+	// Assert
+	Assert.True(success);
+	storeMock.Verify(
+		x => x.RemoveInventory(Product.Shampoo, 5),
+		Times.Once);
+}
+```
+
+在上面这段代码中，Product实例就是不可变的，而只有 Store 包含一个内部状态，可以随着时间的推移而变化，因此这里只替换了 Store 实例，这个就好比你不会替换常量5一样，因为5本身静态不可改变的。
+
+补Figure 2.4的图
+
+2.5的图
+
+### 共享和进程外依赖之间的关系 
+
+​	共享但不在进程外的依赖关系的一个例子是单例（所有测试重用的实例）或类中的静态字段。 数据库既是共享的也是进程外的，它驻留在主进程之外并且是可变的。 只读 API 是进程外的，但不是共享的，因为测试用例不能修改它，因此并不能影响彼此的执行流程。
+
+举个例子，如果有一个 API 返回产品的目录，只要 API 不公开更改目录的功能，这就不是共享依赖项。 虽然这样的依赖项是易变的，并且位于应用程序的边界之外，但是由于测试用例不能影响它返回的数据，因此它不会被共享。 但这并不意味着必须在包含这样的依赖项。 在大多数情况下，您仍然需要将其替换为测试替代以保持测试速度。但是如果进程外依赖足够快并且与其连接稳定，则可以很好地将其作用在测试中。
+
+
 
