@@ -167,129 +167,7 @@ public enum Product
 }
 ```
 
-先简单介绍一下3A原则：
-
-#### AAA(Arrange、Act、Assert)原则
-
-Arrange是输入条件，将被测系统 (SUT) 及其依赖项初始化，Act是执行的动作，调用 SUT 上的方法，传递准备好的依赖项，并捕获输出值。Assert是单元测试的断言，用于验证结果。一般我们倾向于将测试代码分为这三部分，每一部分放在一起。
-
-3A模式为单元测试提供了一个更简单，更统一的结构，会使单元测试更有可读性。
-
-测试驱动开发（TDD）
-
-​	开发功能之前尝试创建失败的测试，这时候我们对功能的行为还不够了解。思考和概述我们对行为的期望，然后弄清楚如何开发系统以满足这种期望。这种技术可能看起来违反常理，但这就是我们解决问题的方式。我们首先考虑目标：对于特定行为我们应该做什么。然后再解决问题。在写业务代码之前写下断言只是这种思维过程的形式化。但是，这条准则仅适用于遵循 TDD 的情况——即在生产代码之前编写测试
-
-图3.1
-
-要避免多个Arrange、Act和Assert，当看到多个由Assert分隔的Act部分时，可能还有Arrange部分，这意味着测试验证了多个行为单元。 正如我们之前讨论的，这样的测试不再是单元测试而是集成测试。我们要尝试避免这样的测试结构。 保持在单元测试的范围内。 如果看到包含一系列操作和断言的测试，要Udine其进行重构， 将每个动作提取到它自己的测试中。
-
-要避免测试中的if语句
-
-我们要求单元测试是简单的步骤序列，没有分支，if语句只会带来额外的维护成本并使测试代码更难阅读和理解
-
-那么AAA应该各个部分应该有多大呢
-
-首先Arrange部分是最大的，可以等于剩下两者的总和，但是如果太多的话，最好还是提取到一个测试类的私有方法中，或者分离提炼出工厂类。
-
-其次，要注意大于一行的Act部分，Act通常只有一行代码，如果这个行为有多行代码，代表被测代码的公共API有问题。
-
-```
-public void Purchase_succeeds_when_enough_inventory()
-{
-	// Arrange
-	var store = new Store();
-	store.AddInventory(Product.Shampoo, 10);
-	var customer = new Customer();
-	// Act
-	bool success = customer.Purchase(store, Product.Shampoo, 5);
-	store.RemoveInventory(success, Product.Shampoo, 5);
-	// Assert
-	Assert.True(success);
-	Assert.Equal(5, store.GetInventory(Product.Shampoo));
-}
-```
-
-问题在于 Customer 类的接口类。 它不应该要求用户进行额外的方法调用。从商业角度来看，一次成功的购买有两个结果：客户购买了产品和减少了商店的库存。这两个结果必须一起实现，这意味着应该有一个公共方法可以做到 两件事。 否则，如果客户端代码调用第一种方法而不调用第二种方法，则存在不一致的空间，在这种情况下，客户获得产品，但其在商店中的可用数量不会减少
-
-最后Assert阶段要考虑要维护多少个断言。单元测试中的单元是行为单元，而不是代码单元。 一个行为单元可以表现出多种结果，可以在一次测试中有多个断言。 但是话虽如此，要需要注意过大的断言部分，这可能是代码缺少抽象的迹象。
-
-将被测代码返回命名区分度的名字，使其与依赖项分开，如下：
-
-```
-public class CalculatorTests
-{
-	public void Sum_of_two_numbers()
-	{
-		// Arrange
-		double first = 10;
-		double second = 20;
-		var sut = new Calculator();	//The calculator is now called sut
-		// Act
-		double result = sut.Sum(first, second);
-		// Assert
-		Assert.Equal(30, result);
-	}
-}
-```
-
-注意用空格或者注释分隔开三个部分
-
-要注意重用测试代码
-
-```
-public class CustomerTests
-{
-	public void Purchase_succeeds_when_enough_inventory()
-	{
-		Store store = CreateStoreWithInventory(Product.Shampoo, 10);
-		Customer sut = CreateCustomer();
-		bool success = sut.Purchase(store, Product.Shampoo, 5);
-		Assert.True(success);
-		Assert.Equal(5, store.GetInventory(Product.Shampoo));
-	}
-	public void Purchase_fails_when_not_enough_inventory()
-	{
-		Store store = CreateStoreWithInventory(Product.Shampoo, 10);
-		Customer sut = CreateCustomer();
-		bool success = sut.Purchase(store, Product.Shampoo, 15);
-		Assert.False(success);
-		Assert.Equal(10, store.GetInventory(Product.Shampoo));
-	}
-	private Store CreateStoreWithInventory(Product product, int quantity)
-	{
-		Store store = new Store();
-		store.AddInventory(product, quantity);
-		return store;
-	}
-	private static Customer CreateCustomer()
-	{
-		return new Customer();
-	}
-}
-```
-
-如上面的代码，两个测试方法都要用到同样的逻辑配置，所以可以提取到构造函数中或者引入工厂类。但是构造函数会导致测试之间高耦合，并且会降低可读性，所以推荐用工厂类，除非这个构造函数每个测试类都要用到，如数据库初始化。
-
-测试命名规范：[被测代码的方法]\_[测试条件、参数]\_[期望结果]，如以下代码：
-
-```
-public class CalculatorTests
-{
-	public void Sum_of_two_numbers()
-	{
-		double first = 10;
-		double second = 20;
-		var sut = new Calculator();
-		double result = sut.Sum(first, second);
-		Assert.Equal(30, result);
-	}
-}
-//改写后名字应该叫做public void Sum_TwoNumbers_ReturnsSum()
-```
-
-
-
-回来继续看上面的代码，Customer是要测试的部分，而Store是合作类。因为customer.Purchase()需要Store作为参数，所以需要Store才能进行编译。另外断言阶段也需要检测库存结果是否符合预期
+看上面的代码，Customer是要测试的部分，而Store是合作类。因为customer.Purchase()需要Store作为参数，所以需要Store才能进行编译。另外断言阶段也需要检测库存结果是否符合预期
 
 我们可以看到，传统风格的单元测试并没有用测试替代来取代Store类，而是用了已有的实例。这样写的单元测试的结果就是，它不是只测试Customer类，而是同时也测试了Store类。所以显然如果Store类有任何BUG，都会让Customer类的测试失败，即使本来是正确的，这就是两个类没有隔离测试的问题。
 
@@ -370,7 +248,7 @@ public void Purchase_fails_when_not_enough_inventory()
 | 伦敦学派 | 单元     | 一个类         | 除了不可变的依赖以外的一切 |
 | 传统学派 | 单元测试 | 一个或者一组类 | 共享依赖                   |
 
-那么什么事不可变依赖呢，
+那么什么是不可变依赖呢，
 
 ```
 public void Purchase_succeeds_when_enough_inventory()
@@ -394,15 +272,191 @@ public void Purchase_succeeds_when_enough_inventory()
 
 在上面这段代码中，Product实例就是不可变的，而只有 Store 包含一个内部状态，可以随着时间的推移而变化，因此这里只替换了 Store 实例，这个就好比你不会替换常量5一样，因为5本身静态不可改变的。
 
-补Figure 2.4的图
-
-2.5的图
+![image-20210726100412381](C:\Users\zhanghaoran25\AppData\Roaming\Typora\typora-user-images\image-20210726100412381.png)
 
 ### 共享和进程外依赖之间的关系 
 
 ​	共享但不在进程外的依赖关系的一个例子是单例（所有测试重用的实例）或类中的静态字段。 数据库既是共享的也是进程外的，它驻留在主进程之外并且是可变的。 只读 API 是进程外的，但不是共享的，因为测试用例不能修改它，因此并不能影响彼此的执行流程。
 
-举个例子，如果有一个 API 返回产品的目录，只要 API 不公开更改目录的功能，这就不是共享依赖项。 虽然这样的依赖项是易变的，并且位于应用程序的边界之外，但是由于测试用例不能影响它返回的数据，因此它不会被共享。 但这并不意味着必须在包含这样的依赖项。 在大多数情况下，您仍然需要将其替换为测试替代以保持测试速度。但是如果进程外依赖足够快并且与其连接稳定，则可以很好地将其作用在测试中。
+​	举个例子，如果有一个 API 返回产品的目录，只要 API 不公开更改目录的功能，这就不是共享依赖项。 虽然这样的依赖项是易变的，并且位于应用程序的边界之外，但是由于测试用例不能影响它返回的数据，因此它不会被共享。 但这并不意味着必须在包含这样的依赖项。 在大多数情况下，您仍然需要将其替换为测试替代以保持测试速度。但是如果进程外依赖足够快并且与其连接稳定，则可以很好地将其作用在测试中。
 
+### AAA(Arrange、Act、Assert)原则
 
+​	Arrange是输入条件，将被测系统 (SUT) 及其依赖项初始化，Act是执行的动作，调用 SUT 上的方法，传递准备好的依赖项，并捕获输出值。Assert是单元测试的断言，用于验证结果。一般我们倾向于将测试代码分为这三部分，每一部分放在一起。
+
+​	3A模式为单元测试提供了一个更简单，更统一的结构，会使单元测试更有可读性。
+
+#### 测试驱动开发（TDD）
+
+​	开发功能之前尝试创建失败的测试，这时候我们对功能的行为还不够了解。思考和概述我们对行为的期望，然后弄清楚如何开发系统以满足这种期望。这种技术可能看起来违反常理，但这就是我们解决问题的方式。我们首先考虑目标：对于特定行为我们应该做什么。然后再解决问题。在写业务代码之前写下断言只是这种思维过程的形式化。但是，这条准则仅适用于遵循 TDD 的情况——即在生产代码之前编写测试
+
+![image-20210726100629347](C:\Users\zhanghaoran25\AppData\Roaming\Typora\typora-user-images\image-20210726100629347.png)
+
+#### 避免多个Arrange、Act和Assert
+
+​	当看到多个由Assert分隔的Act部分时，可能还有Arrange部分，这意味着测试验证了多个行为单元。 正如我们之前讨论的，这样的测试不再是单元测试而是集成测试。我们要尝试避免这样的测试结构。 保持在单元测试的范围内。 如果看到包含一系列操作和断言的测试，要Udine其进行重构， 将每个动作提取到它自己的测试中。
+
+#### 避免测试中的if语句
+
+​	我们要求单元测试是简单的步骤序列，没有分支，if语句只会带来额外的维护成本并使测试代码更难阅读和理解
+
+#### AAA各个部分应该有多大呢
+
+​	首先Arrange部分是最大的，可以等于剩下两者的总和，但是如果太多的话，最好还是提取到一个测试类的私有方法中，或者分离提炼出工厂类。
+
+​	其次，要注意大于一行的Act部分，Act通常只有一行代码，如果这个行为有多行代码，代表被测代码的公共API有问题。如下代码：
+
+```
+public void Purchase_succeeds_when_enough_inventory()
+{
+	// Arrange
+	var store = new Store();
+	store.AddInventory(Product.Shampoo, 10);
+	var customer = new Customer();
+	// Act
+	bool success = customer.Purchase(store, Product.Shampoo, 5);
+	store.RemoveInventory(success, Product.Shampoo, 5);
+	// Assert
+	Assert.True(success);
+	Assert.Equal(5, store.GetInventory(Product.Shampoo));
+}
+```
+
+​	这段代码的问题在于 Customer 类的接口类。 它不应该要求用户进行额外的方法调用。从业务的角度出发，一次成功的购买有两个结果：客户购买了产品同时商店的库存减少。这两个结果必须一起实现，这意味着应该有一个公共方法可以做到两件事。 否则，如果客户端代码调用第一种方法而不调用第二种方法，则存在不一致的空间，在这种情况下，客户获得产品，但其在商店中的可用数量不会减少
+
+​	最后Assert阶段要考虑要维护多少个断言。单元测试中的单元是行为单元，而不是代码单元。 一个行为单元可以表现出多种结果，可以在一次测试中有多个断言。 但是话虽如此，要需要注意过大的断言部分，这可能是代码缺少抽象的迹象。
+
+#### 被测试代码方法命名
+
+将被测代码返回命名区分度的名字，使其与依赖项分开，如下：
+
+```
+public class CalculatorTests
+{
+	public void Sum_of_two_numbers()
+	{
+		// Arrange
+		double first = 10;
+		double second = 20;
+		var sut = new Calculator();	//The calculator is now called sut
+		// Act
+		double result = sut.Sum(first, second);
+		// Assert
+		Assert.Equal(30, result);
+	}
+}
+```
+
+注意用空格或者注释分隔开三个部分
+
+#### 注意重用测试代码
+
+​	两个测试方法都要用到同样的逻辑配置，所以可以提取到构造函数中或者引入工厂类。
+
+```
+public class CustomerTests
+{
+	private readonly Store _store;
+	private readonly Customer _sut;
+	public CustomerTests()
+	{
+		_store = new Store();
+		_store.AddInventory(Product.Shampoo, 10);
+		_sut = new Customer();
+	}
+	public void Purchase_succeeds_when_enough_inventory()
+	{
+		bool success = _sut.Purchase(_store, Product.Shampoo, 5);
+		Assert.True(success);
+		Assert.Equal(5, _store.GetInventory(Product.Shampoo));
+	}
+	public void Purchase_fails_when_not_enough_inventory()
+	{
+		bool success = _sut.Purchase(_store, Product.Shampoo, 15);
+		Assert.False(success);
+		Assert.Equal(10, _store.GetInventory(Product.Shampoo));
+	}
+}
+```
+
+​	但是构造函数会导致测试之间高耦合，并且会降低可读性。如改变`_store.AddInventory(Product.Shampoo, 10)`这一行代码的数值，从10变化到15，多个测试方法将都会受到影响，这是不合理的，因为单元测试之间要保持独立性。
+
+​	除非这个构造函数每个测试类都要用到，如数据库初始化，可以采用构造函数的方式。
+
+```
+public class CustomerTests
+{
+	public void Purchase_succeeds_when_enough_inventory()
+	{
+		Store store = CreateStoreWithInventory(Product.Shampoo, 10);
+		Customer sut = CreateCustomer();
+		bool success = sut.Purchase(store, Product.Shampoo, 5);
+		Assert.True(success);
+		Assert.Equal(5, store.GetInventory(Product.Shampoo));
+	}
+	public void Purchase_fails_when_not_enough_inventory()
+	{
+		Store store = CreateStoreWithInventory(Product.Shampoo, 10);
+		Customer sut = CreateCustomer();
+		bool success = sut.Purchase(store, Product.Shampoo, 15);
+		Assert.False(success);
+		Assert.Equal(10, store.GetInventory(Product.Shampoo));
+	}
+	private Store CreateStoreWithInventory(Product product, int quantity)
+	{
+		Store store = new Store();
+		store.AddInventory(product, quantity);
+		return store;
+	}
+	private static Customer CreateCustomer()
+	{
+		return new Customer();
+	}
+}
+```
+
+推荐用工厂类，有效地降低了耦合性，增加了可读性。
+
+### 测试命名规范
+
+​	用合适的英文描述测试的行为。如传递一个不合法的日期，得到不合法的返回结果的测试名可以叫做
+
+​	`public void Delivery_with_invalid_date_should_be_considered_invalid()`
+
+​	然后我们用实际的数据类别代替传递的参数，如过去的时间是不合法的，可以像这么写：
+
+​	`public void Delivery_with_past_date_should_be_considered_invalid()`
+
+​	然后去掉没有必要的词，将should be这样的词改成确定的含义，如下：
+
+​	`public void Delivery_with_past_date_is_invalid()`
+
+​	最后使得语句尽量符合英文语法，如下：
+
+​	`public void Delivery_with_a_past_date_is_invalid()`
+
+​	这样的名字直截了当，并清晰的描述了测试的行为。
+
+​	在junit中，通常使用test_[被测代码方法名]来命名
+
+### 优秀单元测试四大支柱
+
+#### 防止回退的保护
+
+​	回退是一种软件错误。它是指一个功能在某些代码修改后停止工作。要评估单元测试在防止回退中的表现，要通过以下几个方面：
+
+1. 在测试中执行的代码量。通常，代码量越大，测试可以暴露回退bug的可能性越大。
+
+2. 代码的复杂度和领域意义。一方面，业务核心功能中的bug是毁灭性的；另一方面，琐碎简单的代码发生回归bug的可能不大。
+
+   要制定良好的回归保护措施，不然将无法维持项目的可持续发展
+
+   此外，除了自己写的代码以外，没有写的代码也要算在内，例如，库、框架和项目中使用的任何外部系统。 这些代码对你的软件工作的影响几乎和你自己的代码一样大。为了获得最好的保护，必须将这些库、框架和外部系统纳入测试范围，以检查你的软件对这些依赖关系的假设是否正确。
+
+#### 对重构的抵抗力
+
+​	
+
+- 快速反馈
+- 可维护性
 
