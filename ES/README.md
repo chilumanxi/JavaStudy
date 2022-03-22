@@ -1,4 +1,3 @@
-# Elasticsearch
 
 ## 介绍
 
