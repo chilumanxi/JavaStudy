@@ -1,5 +1,3 @@
-import java.util.List;
-
 /**
  * SingletonIdler class
  * 懒汉式单例模式
