@@ -53,7 +53,7 @@ public class MyHashMap<K, V> {
         //get hash code
         int hashCode = key.hashCode();
         //get remainder by bucket length
-        int index = hashCode % length;
+        int index = (length - 1) & hashCode;
         return Math.abs(index);
     }
 
